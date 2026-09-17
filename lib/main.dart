@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'screens/prayer_screen.dart';
 import 'screens/qibla_screen.dart';
 import 'screens/dhikr_screen.dart';
 import 'screens/hijri_screen.dart';
+import 'screens/dua_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('ar');
   runApp(const RafiqApp());
 }
 
@@ -23,7 +27,6 @@ class RafiqApp extends StatelessWidget {
         fontFamily: 'Tahoma',
       ),
       builder: (context, child) {
-        // فرض اتجاه الكتابة من اليمين لليسار في كل التطبيق
         return Directionality(
           textDirection: TextDirection.rtl,
           child: child!,
@@ -48,6 +51,7 @@ class _HomeShellState extends State<HomeShell> {
     PrayerScreen(),
     QiblaScreen(),
     DhikrScreen(),
+    DuaScreen(),
     HijriScreen(),
   ];
 
@@ -75,6 +79,7 @@ class _HomeShellState extends State<HomeShell> {
           NavigationDestination(icon: Icon(Icons.access_time), label: 'الصلاة'),
           NavigationDestination(icon: Icon(Icons.explore), label: 'القبلة'),
           NavigationDestination(icon: Icon(Icons.fingerprint), label: 'الأذكار'),
+          NavigationDestination(icon: Icon(Icons.menu_book), label: 'الأدعية'),
           NavigationDestination(icon: Icon(Icons.calendar_month), label: 'التقويم'),
         ],
       ),
