@@ -17,8 +17,6 @@ class RafiqApp extends StatelessWidget {
     return MaterialApp(
       title: 'رفيق',
       debugShowCheckedModeBanner: false,
-      locale: const Locale('ar'),
-      supportedLocales: const [Locale('ar')],
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: seed),
         useMaterial3: true,
