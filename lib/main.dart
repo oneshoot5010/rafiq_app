@@ -1,0 +1,85 @@
+import 'package:flutter/material.dart';
+import 'screens/prayer_screen.dart';
+import 'screens/qibla_screen.dart';
+import 'screens/dhikr_screen.dart';
+import 'screens/hijri_screen.dart';
+
+void main() {
+  runApp(const RafiqApp());
+}
+
+class RafiqApp extends StatelessWidget {
+  const RafiqApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    const seed = Color(0xFF0F6B5C);
+    return MaterialApp(
+      title: 'رفيق',
+      debugShowCheckedModeBanner: false,
+      locale: const Locale('ar'),
+      supportedLocales: const [Locale('ar')],
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: seed),
+        useMaterial3: true,
+        fontFamily: 'Tahoma',
+      ),
+      builder: (context, child) {
+        // فرض اتجاه الكتابة من اليمين لليسار في كل التطبيق
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: child!,
+        );
+      },
+      home: const HomeShell(),
+    );
+  }
+}
+
+class HomeShell extends StatefulWidget {
+  const HomeShell({super.key});
+
+  @override
+  State<HomeShell> createState() => _HomeShellState();
+}
+
+class _HomeShellState extends State<HomeShell> {
+  int _tabIndex = 0;
+
+  static const _screens = [
+    PrayerScreen(),
+    QiblaScreen(),
+    DhikrScreen(),
+    HijriScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('🕌 '),
+            Text('رفيق'),
+          ],
+        ),
+        centerTitle: true,
+      ),
+      body: IndexedStack(
+        index: _tabIndex,
+        children: _screens,
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _tabIndex,
+        onDestinationSelected: (i) => setState(() => _tabIndex = i),
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.access_time), label: 'الصلاة'),
+          NavigationDestination(icon: Icon(Icons.explore), label: 'القبلة'),
+          NavigationDestination(icon: Icon(Icons.fingerprint), label: 'الأذكار'),
+          NavigationDestination(icon: Icon(Icons.calendar_month), label: 'التقويم'),
+        ],
+      ),
+    );
+  }
+}
