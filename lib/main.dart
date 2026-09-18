@@ -17,14 +17,20 @@ class RafiqApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const seed = Color(0xFF0F6B5C);
+    const seed = Color(0xFF0B5D45);
+    const gold = Color(0xFFC9A24B);
     return MaterialApp(
       title: 'رفيق',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: seed),
+        colorScheme: ColorScheme.fromSeed(seedColor: seed).copyWith(secondary: gold),
         useMaterial3: true,
         fontFamily: 'Tahoma',
+        appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
+        cardTheme: CardThemeData(
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        ),
       ),
       builder: (context, child) {
         return Directionality(
