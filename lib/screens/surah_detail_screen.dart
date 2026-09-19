@@ -16,14 +16,13 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
   String? _error;
   final AudioPlayer _player = AudioPlayer();
   int? _playingIndex;
+  bool _playAll = false;
 
   @override
   void initState() {
     super.initState();
     _load();
-    _player.onPlayerComplete.listen((_) {
-      if (mounted) setState(() => _playingIndex = null);
-    });
+    _player.onPlayerComplete.listen((_) => _onAyahFinished());
   }
 
   @override
@@ -41,23 +40,73 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
     }
   }
 
+  void _onAyahFinished() {
+    if (!mounted) return;
+    if (_playAll && _playingIndex != null && _ayahs != null) {
+      final next = _playingIndex! + 1;
+      if (next < _ayahs!.length) {
+        _playAt(next);
+        return;
+      }
+    }
+    setState(() {
+      _playingIndex = null;
+      _playAll = false;
+    });
+  }
+
+  Future<void> _playAt(int index) async {
+    final url = _ayahs![index].audioUrl;
+    if (url == null) return;
+    await _player.stop();
+    await _player.play(UrlSource(url));
+    setState(() => _playingIndex = index);
+  }
+
   Future<void> _toggleAudio(int index, String? url) async {
     if (url == null) return;
     if (_playingIndex == index) {
       await _player.stop();
-      setState(() => _playingIndex = null);
+      setState(() {
+        _playingIndex = null;
+        _playAll = false;
+      });
     } else {
-      await _player.stop();
-      await _player.play(UrlSource(url));
-      setState(() => _playingIndex = index);
+      setState(() => _playAll = false);
+      await _playAt(index);
     }
+  }
+
+  Future<void> _playWholeSurah() async {
+    if (_ayahs == null || _ayahs!.isEmpty) return;
+    setState(() => _playAll = true);
+    await _playAt(0);
+  }
+
+  Future<void> _stopAll() async {
+    await _player.stop();
+    setState(() {
+      _playingIndex = null;
+      _playAll = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isPlayingSurah = _playAll && _playingIndex != null;
     return Scaffold(
-      appBar: AppBar(title: Text(widget.surahName)),
+      appBar: AppBar(
+        title: Text(widget.surahName),
+        actions: [
+          if (_ayahs != null && _ayahs!.isNotEmpty)
+            IconButton(
+              icon: Icon(isPlayingSurah ? Icons.stop_circle : Icons.play_circle_fill),
+              tooltip: isPlayingSurah ? 'إيقاف' : 'تشغيل السورة كاملة',
+              onPressed: isPlayingSurah ? _stopAll : _playWholeSurah,
+            ),
+        ],
+      ),
       body: _error != null
           ? Center(
               child: Padding(
@@ -90,6 +139,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                     final isPlaying = _playingIndex == i;
                     return Card(
                       margin: const EdgeInsets.symmetric(vertical: 4),
+                      color: isPlaying ? theme.colorScheme.primary.withOpacity(0.08) : null,
                       child: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Column(
