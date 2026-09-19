@@ -39,7 +39,7 @@ class AyahData {
 }
 
 class QuranService {
-  static const _base = 'https://api.alquran.cloud/v1'\;
+  static const _base = 'https://api.alquran.cloud/v1';
 
   static Future<List<SurahInfo>> getSurahList() async {
     final res = await http.get(Uri.parse('$_base/surah'));
