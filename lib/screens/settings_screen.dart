@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../services/gemini_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -11,6 +12,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationsEnabled = true;
   bool _loading = true;
+  String? _apiKey;
 
   @override
   void initState() {
@@ -20,8 +22,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
+    final key = await GeminiService.getApiKey();
     setState(() {
       _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+      _apiKey = key;
       _loading = false;
     });
   }
@@ -67,10 +71,69 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _shareApp() async {
-    final uri = Uri.parse(
-        'https://github.com/oneshoot5010/rafiq_app');
+    final uri = Uri.parse('https://github.com/oneshoot5010/rafiq_app');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _editApiKey() async {
+    final controller = TextEditingController(text: _apiKey ?? '');
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('مفتاح Gemini API'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'يُستخدم لتشغيل مساعد الأسئلة الدينية الذكي. احصل عليه من aistudio.google.com/apikey',
+              style: TextStyle(fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              obscureText: true,
+              decoration: const InputDecoration(
+                hintText: 'الصق المفتاح هنا',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          if (_apiKey != null && _apiKey!.isNotEmpty)
+            TextButton(
+              onPressed: () => Navigator.pop(context, ''),
+              child: const Text('حذف المفتاح',
+                  style: TextStyle(color: Colors.red)),
+            ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: const Text('حفظ'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == null) return;
+    if (result.isEmpty) {
+      await GeminiService.clearApiKey();
+      setState(() => _apiKey = null);
+    } else {
+      await GeminiService.setApiKey(result);
+      setState(() => _apiKey = result);
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(result.isEmpty ? 'تم حذف المفتاح' : 'تم حفظ المفتاح')),
+      );
     }
   }
 
@@ -79,6 +142,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
+    final hasKey = _apiKey != null && _apiKey!.isNotEmpty;
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
       children: [
@@ -91,6 +155,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           subtitle: const Text('تفعيل أو إيقاف إشعارات الصلاة'),
           value: _notificationsEnabled,
           onChanged: _setNotifications,
+        ),
+        const Divider(),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Text('المساعد الذكي',
+              style: TextStyle(fontWeight: FontWeight.bold)),
+        ),
+        ListTile(
+          leading: Icon(Icons.vpn_key_outlined,
+              color: hasKey ? Colors.green : null),
+          title: const Text('مفتاح Gemini API'),
+          subtitle: Text(hasKey ? 'تم إضافة المفتاح ✓' : 'لم تتم إضافة مفتاح بعد'),
+          onTap: _editApiKey,
         ),
         const Divider(),
         const Padding(

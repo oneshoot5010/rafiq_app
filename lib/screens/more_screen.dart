@@ -11,6 +11,7 @@ import 'about_developer_screen.dart';
 import 'tafsir_screen.dart';
 import 'settings_screen.dart';
 import 'courses_screen.dart';
+import 'ai_qa_screen.dart';
 
 class MoreItem {
   final String title;
@@ -35,6 +36,7 @@ class MoreScreen extends StatelessWidget {
     MoreItem('التفسير', Icons.book_outlined, TafsirScreen()),
     MoreItem('الإعدادات', Icons.settings_outlined, SettingsScreen()),
     MoreItem('كورسات مصغرة', Icons.school_outlined, CoursesScreen()),
+    MoreItem('اسأل عن دينك', Icons.smart_toy_outlined, AiQaScreen()),
   ];
 
   @override
