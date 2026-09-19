@@ -10,6 +10,7 @@ import 'memorization_screen.dart';
 import 'about_developer_screen.dart';
 import 'tafsir_screen.dart';
 import 'settings_screen.dart';
+import 'courses_screen.dart';
 
 class MoreItem {
   final String title;
@@ -33,6 +34,7 @@ class MoreScreen extends StatelessWidget {
     MoreItem('عن المطوّر', Icons.info_outline, AboutDeveloperScreen()),
     MoreItem('التفسير', Icons.book_outlined, TafsirScreen()),
     MoreItem('الإعدادات', Icons.settings_outlined, SettingsScreen()),
+    MoreItem('كورسات مصغرة', Icons.school_outlined, CoursesScreen()),
   ];
 
   @override
