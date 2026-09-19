@@ -7,6 +7,7 @@ import 'jamaah_screen.dart';
 import 'khushoo_screen.dart';
 import 'stories_screen.dart';
 import 'memorization_screen.dart';
+import 'about_developer_screen.dart';
 
 class MoreItem {
   final String title;
@@ -27,6 +28,7 @@ class MoreScreen extends StatelessWidget {
     MoreItem('وضع الخشوع', Icons.self_improvement, KhushooScreen()),
     MoreItem('قصص الأنبياء', Icons.auto_stories, StoriesScreen()),
     MoreItem('تتبع الحفظ', Icons.menu_book, MemorizationScreen()),
+    MoreItem('عن المطوّر', Icons.info_outline, AboutDeveloperScreen()),
   ];
 
   @override
