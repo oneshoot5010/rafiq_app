@@ -14,7 +14,7 @@ class GeminiService {
   /// يرسل المحادثة كاملة للسيرفر الوسيط ويرجع رد المساعد.
   /// يرمي [GeminiException] برسالة عربية واضحة عند أي خطأ.
   static Future<String> ask(List<GeminiMessage> history) async {
-    final uri = Uri.parse('$_serverUrl/ask');
+    final uri = Uri.parse('$_serverUrl/api/ask');
 
     final body = jsonEncode({
       'history': history
