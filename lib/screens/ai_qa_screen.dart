@@ -12,8 +12,6 @@ class _AiQaScreenState extends State<AiQaScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _sending = false;
-  bool _checkingKey = true;
-  bool _hasKey = false;
 
   static const List<String> _suggestions = [
     'ما هي شروط صحة الصلاة؟',
@@ -21,20 +19,6 @@ class _AiQaScreenState extends State<AiQaScreen> {
     'كيف أتوب توبة نصوحة؟',
     'ما فضل قراءة سورة الكهف يوم الجمعة؟',
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _checkKey();
-  }
-
-  Future<void> _checkKey() async {
-    final key = await GeminiService.getApiKey();
-    setState(() {
-      _hasKey = key != null && key.isNotEmpty;
-      _checkingKey = false;
-    });
-  }
 
   Future<void> _send([String? presetText]) async {
     final text = presetText ?? _controller.text.trim();
@@ -81,42 +65,6 @@ class _AiQaScreenState extends State<AiQaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_checkingKey) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (!_hasKey) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('مساعد الأسئلة الدينية')),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.vpn_key_outlined,
-                    size: 56,
-                    color: Theme.of(context).colorScheme.primary),
-                const SizedBox(height: 16),
-                const Text(
-                  'لاستخدام المساعد الذكي، يجب إضافة مفتاح API أولاً من شاشة الإعدادات',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('الذهاب للإعدادات'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(title: const Text('مساعد الأسئلة الدينية')),
       body: Column(
