@@ -1,7 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tzdata;
-import 'package:flutter_timezone/flutter_timezone.dart';
 import 'prayer_times_service.dart';
 
 class NotificationService {
@@ -14,12 +13,6 @@ class NotificationService {
     if (_initialized) return;
 
     tzdata.initializeTimeZones();
-    try {
-      final String localTz = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(localTz));
-    } catch (_) {
-      tz.setLocalLocation(tz.getLocation('UTC'));
-    }
 
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -73,14 +66,17 @@ class NotificationService {
     );
     const details = NotificationDetails(android: androidDetails);
 
-    final now = tz.TZDateTime.now(tz.local);
+    final now = DateTime.now();
     int id = 0;
     for (final entry in entries.entries) {
       final t = entry.value;
       if (t == null) continue;
-      final scheduled = tz.TZDateTime(
-          tz.local, now.year, now.month, now.day, t.hour, t.minute);
-      if (scheduled.isBefore(now)) continue;
+      final localTarget =
+          DateTime(now.year, now.month, now.day, t.hour, t.minute);
+      if (localTarget.isBefore(now)) continue;
+      // نحول الوقت المحلي (المحسوب أصلاً بإزاحة الجهاز) إلى TZDateTime
+      // بنفس اللحظة الزمنية الفعلية، من غير الحاجة لمعرفة اسم المنطقة الزمنية
+      final scheduled = tz.TZDateTime.from(localTarget, tz.UTC);
       await _plugin.zonedSchedule(
         id++,
         'حان الآن موعد صلاة ${entry.key}',
