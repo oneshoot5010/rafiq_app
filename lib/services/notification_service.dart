@@ -88,6 +88,8 @@ class NotificationService {
         scheduled,
         details,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UiLocalNotificationDateInterpretation.absoluteTime,
       );
     }
   }
