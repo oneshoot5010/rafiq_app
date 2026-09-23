@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../services/notification_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -10,6 +11,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationsEnabled = true;
+  Map<String, bool> _perPrayer = {};
   bool _loading = true;
 
   @override
@@ -20,8 +22,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
+    final map = <String, bool>{};
+    for (final entry in NotificationService.prefKeys.entries) {
+      map[entry.key] = prefs.getBool(entry.value) ?? true;
+    }
     setState(() {
       _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+      _perPrayer = map;
       _loading = false;
     });
   }
@@ -30,6 +37,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('notifications_enabled', value);
     setState(() => _notificationsEnabled = value);
+    if (!value) {
+      await NotificationService.cancelAll();
+    }
+  }
+
+  Future<void> _setPrayerEnabled(String prayerName, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(NotificationService.prefKeys[prayerName]!, value);
+    setState(() => _perPrayer[prayerName] = value);
+  }
+
+  Future<void> _testAthan() async {
+    await NotificationService.scheduleTest();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('هيوصلك إشعار تجريبي بصوت الأذان خلال 10 ثواني'),
+        ),
+      );
+    }
   }
 
   Future<void> _resetDhikrCounters() async {
@@ -91,6 +118,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
           value: _notificationsEnabled,
           onChanged: _setNotifications,
         ),
+        ListTile(
+          leading: const Icon(Icons.volume_up_outlined),
+          title: const Text('اختبار صوت الأذان'),
+          subtitle: const Text('يشغّل إشعارًا تجريبيًا بعد 10 ثوانٍ'),
+          onTap: _testAthan,
+        ),
+        if (_notificationsEnabled) ...[
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 14, 16, 2),
+            child: Text('ضبط الأذان لكل صلاة',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          ..._perPrayer.entries.map(
+            (e) => SwitchListTile(
+              dense: true,
+              title: Text(e.key),
+              value: e.value,
+              onChanged: (v) => _setPrayerEnabled(e.key, v),
+            ),
+          ),
+        ],
         const Divider(),
         const Padding(
           padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
