@@ -5,10 +5,12 @@ import 'screens/qibla_screen.dart';
 import 'screens/dhikr_screen.dart';
 import 'screens/dua_screen.dart';
 import 'screens/more_screen.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('ar');
+  await NotificationService.init();
   runApp(const RafiqApp());
 }
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/prayer_times_service.dart';
+import '../services/notification_service.dart';
 
 class PrayerScreen extends StatefulWidget {
   const PrayerScreen({super.key});
@@ -79,6 +81,19 @@ class _PrayerScreenState extends State<PrayerScreen> {
           ? 'تعذّر الوصول للموقع — عرض توقيت مكة المكرمة (اضغط تحديث لإعادة المحاولة)'
           : 'تم تحديد الموقع (${lat.toStringAsFixed(2)}, ${lon.toStringAsFixed(2)})';
     });
+
+    // نجدول تنبيهات الأذان لباقي صلوات اليوم، حسب تفضيل المستخدم في الإعدادات
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final notifEnabled = prefs.getBool('notifications_enabled') ?? true;
+      if (notifEnabled) {
+        await NotificationService.scheduleForToday(times);
+      } else {
+        await NotificationService.cancelAll();
+      }
+    } catch (_) {
+      // تجاهل أي خطأ في جدولة الإشعارات حتى لا يعطّل عرض المواقيت
+    }
 
     // لو فشلنا في أول محاولة، نجرب تلقائيًا مرة واحدة كمان بعد شوية
     // بدل ما نضطر المستخدم يقفل ويفتح التطبيق
