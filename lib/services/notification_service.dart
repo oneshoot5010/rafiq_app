@@ -130,16 +130,35 @@ class NotificationService {
       tz.UTC,
     );
 
-    await _plugin.zonedSchedule(
-      999,
-      'اختبار الأذان',
-      'هذا إشعار تجريبي للتأكد من عمل الصوت',
-      scheduled,
-      details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-    );
+    try {
+      await _plugin.zonedSchedule(
+        999,
+        'اختبار الأذان',
+        'هذا إشعار تجريبي للتأكد من عمل الصوت',
+        scheduled,
+        details,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } catch (e) {
+      // لو فشلت الجدولة الدقيقة (غالبًا لغياب إذن "المنبهات الدقيقة")
+      // نجرب وضع غير دقيق كبديل، أفضل من فشل كامل
+      try {
+        await _plugin.zonedSchedule(
+          999,
+          'اختبار الأذان',
+          'هذا إشعار تجريبي للتأكد من عمل الصوت',
+          scheduled,
+          details,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+        );
+      } catch (e2) {
+        rethrow;
+      }
+    }
   }
 
   static Future<void> cancelAll() => _plugin.cancelAll();

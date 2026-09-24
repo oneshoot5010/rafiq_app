@@ -49,13 +49,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _testAthan() async {
-    await NotificationService.scheduleTest();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('هيوصلك إشعار تجريبي بصوت الأذان خلال 10 ثواني'),
-        ),
-      );
+    try {
+      await NotificationService.scheduleTest();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('هيوصلك إشعار تجريبي بصوت الأذان خلال 10 ثواني'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('حصل خطأ: $e'),
+            duration: const Duration(seconds: 8),
+          ),
+        );
+      }
     }
   }
 
