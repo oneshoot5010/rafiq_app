@@ -139,6 +139,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
           subtitle: const Text('يشغّل إشعارًا تجريبيًا بعد 10 ثوانٍ'),
           onTap: _testAthan,
         ),
+        ListTile(
+          leading: const Icon(Icons.flash_on_outlined),
+          title: const Text('اختبار فوري (من غير تأجيل)'),
+          subtitle: const Text('يطلع الإشعار فورًا بمجرد الضغط'),
+          onTap: () async {
+            try {
+              await NotificationService.showInstant();
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text('حصل خطأ: $e'),
+                      duration: const Duration(seconds: 8)),
+                );
+              }
+            }
+          },
+        ),
         if (_notificationsEnabled) ...[
           const Padding(
             padding: EdgeInsets.fromLTRB(16, 14, 16, 2),

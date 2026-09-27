@@ -161,6 +161,27 @@ class NotificationService {
     }
   }
 
+  static Future<void> showInstant() async {
+    if (!_initialized) await init();
+    const androidDetails = AndroidNotificationDetails(
+      _channelId,
+      'أذان الصلاة',
+      channelDescription: 'تنبيه صوتي بموعد كل صلاة',
+      importance: Importance.max,
+      priority: Priority.high,
+      sound: RawResourceAndroidNotificationSound('athan'),
+      playSound: true,
+      audioAttributesUsage: AudioAttributesUsage.alarm,
+    );
+    const details = NotificationDetails(android: androidDetails);
+    await _plugin.show(
+      998,
+      'اختبار فوري',
+      'إشعار فوري من غير جدولة',
+      details,
+    );
+  }
+
   static Future<bool?> canScheduleExact() async {
     if (!_initialized) await init();
     final androidImpl = _plugin.resolvePlatformSpecificImplementation<
