@@ -50,11 +50,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _testAthan() async {
     try {
+      final canExact = await NotificationService.canScheduleExact();
       await NotificationService.scheduleTest();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('هيوصلك إشعار تجريبي بصوت الأذان خلال 10 ثواني'),
+          SnackBar(
+            content: Text(
+              'إذن الجدولة الدقيقة: ${canExact == true ? "مفعّل ✅" : "غير مفعّل ❌"} — هيوصلك إشعار خلال 10 ثواني',
+            ),
+            duration: const Duration(seconds: 8),
           ),
         );
       }

@@ -161,5 +161,12 @@ class NotificationService {
     }
   }
 
+  static Future<bool?> canScheduleExact() async {
+    if (!_initialized) await init();
+    final androidImpl = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    return androidImpl?.canScheduleExactNotifications();
+  }
+
   static Future<void> cancelAll() => _plugin.cancelAll();
 }
