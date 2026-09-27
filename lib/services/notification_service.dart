@@ -8,7 +8,7 @@ class NotificationService {
   static final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
   static bool _initialized = false;
-  static const String _channelId = 'prayer_athan_channel';
+  static const String _channelId = 'prayer_athan_channel_v2';
 
   static const Map<String, String> prefKeys = {
     'الفجر': 'athan_fajr',
