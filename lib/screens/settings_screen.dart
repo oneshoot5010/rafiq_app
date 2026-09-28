@@ -140,6 +140,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onTap: _testAthan,
         ),
         ListTile(
+          leading: const Icon(Icons.battery_saver_outlined),
+          title: const Text('استثناء رفيق من توفير الطاقة'),
+          subtitle: const Text('أهم خطوة لضمان وصول الأذان في وقته'),
+          onTap: () async {
+            final granted =
+                await NotificationService.requestIgnoreBatteryOptimizations();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(granted
+                      ? 'تم الاستثناء بنجاح ✅'
+                      : 'لم تتم الموافقة، حاول مرة أخرى'),
+                ),
+              );
+            }
+          },
+        ),
+        ListTile(
           leading: const Icon(Icons.flash_on_outlined),
           title: const Text('اختبار فوري (من غير تأجيل)'),
           subtitle: const Text('يطلع الإشعار فورًا بمجرد الضغط'),

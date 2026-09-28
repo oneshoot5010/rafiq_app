@@ -82,17 +82,47 @@ class _PrayerScreenState extends State<PrayerScreen> {
           : 'تم تحديد الموقع (${lat.toStringAsFixed(2)}, ${lon.toStringAsFixed(2)})';
     });
 
-    // نجدول تنبيهات الأذان لباقي صلوات اليوم، حسب تفضيل المستخدم في الإعدادات
+    // نجدول أذان اليوم المتبقي وأذان الغد بالكامل، حسب تفضيل المستخدم
     try {
       final prefs = await SharedPreferences.getInstance();
       final notifEnabled = prefs.getBool('notifications_enabled') ?? true;
       if (notifEnabled) {
-        await NotificationService.scheduleForToday(times);
+        final tomorrowDate = now.add(const Duration(days: 1));
+        final tomorrowTzOffset = tomorrowDate.timeZoneOffset.inMinutes / 60.0;
+        final tomorrowTimes = PrayerTimesService.compute(
+          lat: lat,
+          lon: lon,
+          date: tomorrowDate,
+          timezoneOffsetHours: tomorrowTzOffset,
+        );
+        final scheduled = await NotificationService.scheduleUpcoming(
+          today: times,
+          tomorrow: tomorrowTimes,
+        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                scheduled.isEmpty
+                    ? 'مفيش صلوات يتم جدولتها'
+                    : 'تم جدولة: ${scheduled.join("، ")}',
+              ),
+              duration: const Duration(seconds: 6),
+            ),
+          );
+        }
       } else {
         await NotificationService.cancelAll();
       }
-    } catch (_) {
-      // تجاهل أي خطأ في جدولة الإشعارات حتى لا يعطّل عرض المواقيت
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('تعذّرت جدولة الأذان: $e'),
+            duration: const Duration(seconds: 8),
+          ),
+        );
+      }
     }
 
     // لو فشلنا في أول محاولة، نجرب تلقائيًا مرة واحدة كمان بعد شوية
