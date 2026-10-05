@@ -103,7 +103,7 @@ class PrayerTimesService {
 
     PrayerTime? toLocal(double? hoursFromSolarNoon) {
       if (hoursFromSolarNoon == null) return null;
-      double t = hoursFromSolarNoon + tz - lon / 15 + eqt / 60;
+      double t = hoursFromSolarNoon + tz - lon / 15 - eqt / 60;
       t = ((t % 24) + 24) % 24;
       int hh = t.floor();
       int mm = ((t - hh) * 60).round();

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -121,6 +122,7 @@ class NotificationService {
             baseDate.year, baseDate.month, baseDate.day, t.hour, t.minute);
         if (localTarget.isBefore(now)) continue;
         final scheduled = tz.TZDateTime.from(localTarget, tz.UTC);
+        debugPrint('name=$name local=$localTarget now=$now scheduled=$scheduled');
         await _plugin.zonedSchedule(
           id++,
           'حان الآن موعد صلاة $name',

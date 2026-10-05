@@ -7,6 +7,7 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
+  adhan: ^2.0.0
   flutter:
     sdk: flutter
   geolocator: ^13.0.1
