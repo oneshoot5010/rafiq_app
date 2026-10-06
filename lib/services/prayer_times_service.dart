@@ -99,7 +99,7 @@ class PrayerTimesService {
     final coordinates = adhan.Coordinates(lat, lon);
     final params = adhan.CalculationMethod.egyptian.getParameters();
     final offset = Duration(minutes: (timezoneOffsetHours * 60).round());
-    final times = adhan.PrayerTimes(coordinates, date, params, utcOffset: offset);
+    final times = adhan.PrayerTimes(coordinates, adhan.DateComponents.from(date), params, utcOffset: offset);
 
     PrayerTime fmt(DateTime d) => PrayerTime(d.hour, d.minute);
 
