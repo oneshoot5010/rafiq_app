@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:adhan/adhan.dart' as adhan;
 
 /// نتيجة حساب المواقيت لكل صلاة، كساعة ودقيقة محلية
 class PrayerTime {
@@ -88,47 +89,27 @@ class PrayerTimesService {
     return isAfterNoon ? 12 + h : 12 - h;
   }
 
-  /// يحسب مواقيت الصلاة الست ليوم معين عند إحداثيات معينة.
+  /// يحسب مواقيت الصلاة بطريقة الهيئة المصرية العامة للمساحة (مكتبة adhan).
   static DailyPrayerTimes compute({
     required double lat,
     required double lon,
     required DateTime date,
     required double timezoneOffsetHours,
   }) {
-    final jd = _julianDate(date);
-    final sun = _sunPosition(jd);
-    final decl = sun.decl;
-    final eqt = sun.eqt;
-    final tz = timezoneOffsetHours;
+    final coordinates = adhan.Coordinates(lat, lon);
+    final params = adhan.CalculationMethod.egyptian.getParameters();
+    final offset = Duration(minutes: (timezoneOffsetHours * 60).round());
+    final times = adhan.PrayerTimes(coordinates, date, params, utcOffset: offset);
 
-    PrayerTime? toLocal(double? hoursFromSolarNoon) {
-      if (hoursFromSolarNoon == null) return null;
-      double t = hoursFromSolarNoon + tz - lon / 15 - eqt / 60;
-      t = ((t % 24) + 24) % 24;
-      int hh = t.floor();
-      int mm = ((t - hh) * 60).round();
-      if (mm == 60) {
-        mm = 0;
-        hh = (hh + 1) % 24;
-      }
-      return PrayerTime(hh, mm);
-    }
-
-    final fajrH = _timeForAngle(fajrAngle, lat, decl, false);
-    final sunriseH = _timeForAngle(0.833, lat, decl, false);
-    final sunsetH = _timeForAngle(0.833, lat, decl, true);
-    final ishaH = _timeForAngle(ishaAngle, lat, decl, true);
-    final asrAngleDeg =
-        -atan(1 / (1 + tan((lat - decl).abs() * pi / 180))) * 180 / pi;
-    final asrH = _timeForAngle(asrAngleDeg, lat, decl, true);
+    PrayerTime fmt(DateTime d) => PrayerTime(d.hour, d.minute);
 
     return DailyPrayerTimes(
-      fajr: toLocal(fajrH),
-      sunrise: toLocal(sunriseH),
-      dhuhr: toLocal(12),
-      asr: toLocal(asrH),
-      maghrib: toLocal(sunsetH),
-      isha: toLocal(ishaH),
+      fajr: fmt(times.fajr),
+      sunrise: fmt(times.sunrise),
+      dhuhr: fmt(times.dhuhr),
+      asr: fmt(times.asr),
+      maghrib: fmt(times.maghrib),
+      isha: fmt(times.isha),
     );
   }
 
