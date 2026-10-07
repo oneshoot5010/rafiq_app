@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'quran_screen.dart';
+import 'mushaf_screen.dart';
 import 'hijri_screen.dart';
 import 'zakat_screen.dart';
 import 'fasting_screen.dart';
@@ -25,6 +26,7 @@ class MoreScreen extends StatelessWidget {
 
   static const List<MoreItem> _items = [
     MoreItem('القرآن الكريم', Icons.menu_book_outlined, QuranScreen()),
+    MoreItem('المصحف', Icons.auto_stories_outlined, MushafScreen()),
     MoreItem('التقويم الهجري', Icons.calendar_month, HijriScreen()),
     MoreItem('حاسبة الزكاة', Icons.calculate, ZakatScreen()),
     MoreItem('تتبع الصيام', Icons.nights_stay, FastingScreen()),

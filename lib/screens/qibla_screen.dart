@@ -12,40 +12,79 @@ class QiblaScreen extends StatefulWidget {
   State<QiblaScreen> createState() => _QiblaScreenState();
 }
 
-class _QiblaScreenState extends State<QiblaScreen> {
-  double? _qiblaBearing; // زاوية القبلة من الشمال الجغرافي (ثابتة بناء على الموقع)
-  double? _heading; // اتجاه الموبايل الحالي من البوصلة (بيتحدث لحظيًا)
+class _QiblaScreenState extends State<QiblaScreen> with WidgetsBindingObserver {
+  double? _qiblaBearing;
+  double? _heading;
   String _status = 'جاري تحديد الموقع...';
   bool _hasCompass = true;
+  bool _gotEvent = false;
+  bool _compassTimedOut = false;
   StreamSubscription<CompassEvent>? _compassSub;
+  Timer? _compassTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadQiblaBearing();
-    _listenToCompass();
+    _startCompass();
   }
 
   @override
   void dispose() {
-    _compassSub?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    _stopCompass();
     super.dispose();
   }
 
-  void _listenToCompass() {
-    if (FlutterCompass.events == null) {
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _startCompass();
+    }
+  }
+
+  void _stopCompass() {
+    _compassTimer?.cancel();
+    _compassTimer = null;
+    _compassSub?.cancel();
+    _compassSub = null;
+  }
+
+  void _startCompass() {
+    _stopCompass();
+    final events = FlutterCompass.events;
+    if (events == null) {
       setState(() => _hasCompass = false);
       return;
     }
-    _compassSub = FlutterCompass.events!.listen((event) {
-      if (event.heading == null) {
-        setState(() => _hasCompass = false);
-        return;
-      }
-      setState(() {
-        _heading = event.heading;
-      });
+
+    _gotEvent = false;
+    _compassTimedOut = false;
+    _compassTimer = Timer(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      if (!_gotEvent) setState(() => _compassTimedOut = true);
     });
+
+    _compassSub = events.listen(
+      (event) {
+        if (!mounted) return;
+        final h = event.heading;
+        if (h == null) {
+          setState(() => _hasCompass = false);
+          return;
+        }
+        _gotEvent = true;
+        setState(() {
+          _hasCompass = true;
+          _compassTimedOut = false;
+          _heading = h;
+        });
+      },
+      onError: (_) {
+        if (mounted) setState(() => _hasCompass = false);
+      },
+    );
   }
 
   Future<void> _loadQiblaBearing() async {
@@ -70,6 +109,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
     } catch (_) {}
 
     final bearing = PrayerTimesService.qiblaBearing(lat: lat, lon: lon);
+    if (!mounted) return;
     setState(() {
       _qiblaBearing = bearing;
       _status = usedFallback
@@ -82,8 +122,6 @@ class _QiblaScreenState extends State<QiblaScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // زاوية دوران السهم = زاوية القبلة - اتجاه الموبايل الحالي
-    // لو مفيش بوصلة أو لسه بتقرأ، بنستخدم زاوية القبلة الثابتة بس
     double? rotationAngle;
     if (_qiblaBearing != null) {
       if (_hasCompass && _heading != null) {
@@ -91,6 +129,19 @@ class _QiblaScreenState extends State<QiblaScreen> {
       } else {
         rotationAngle = _qiblaBearing;
       }
+    }
+
+    final String footer;
+    final Color footerColor;
+    if (!_hasCompass) {
+      footer = 'جهازك مفيهوش حساس بوصلة، فالسهم بيوريك زاوية القبلة الثابتة بس.';
+      footerColor = Colors.grey;
+    } else if (_compassTimedOut) {
+      footer = 'البوصلة ما ردتش على الجهاز. اقفل التطبيق وافتحه تاني، أو جرّب تحرك الموبايل بشكل ثمانية.';
+      footerColor = Colors.orange;
+    } else {
+      footer = 'حرّك موبايلك بشكل ثمانية أفقيًا لمعايرة البوصلة لو السهم مش دقيق';
+      footerColor = Colors.grey;
     }
 
     return Center(
@@ -141,18 +192,11 @@ class _QiblaScreenState extends State<QiblaScreen> {
                 ],
               ),
             const SizedBox(height: 24),
-            if (!_hasCompass)
-              const Text(
-                'ملحوظة: جهازك مفيهوش حساس بوصلة (مغناطيسي)، فالسهم هيوريك زاوية القبلة الثابتة بس من غير حركة لحظية.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              )
-            else
-              const Text(
-                'حرّك موبايلك بشكل ثمانية أفقيًا لمعايرة البوصلة لو السهم مش دقيق',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
+            Text(
+              footer,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: footerColor),
+            ),
           ],
         ),
       ),
